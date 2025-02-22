@@ -16,7 +16,6 @@ def dash_index():
     export_data = du.query_export(df)
     auto_by_state = du.query_auto(df)
     irpj_fin, irpj_dem = du.query_irpj(df)
-    state_ipi, prod_ipi = du.query_ipi(df)
     csll_fin, csll_nao = du.query_csll(df)
     tax_fast = du.query_growth(df)
 
@@ -32,8 +31,6 @@ def dash_index():
         "auto_by_state": auto_by_state,
         "irpj_financeiras": irpj_fin,
         "irpj_demais": irpj_dem,
-        "state_ipi": state_ipi,
-        "produto_ipi": prod_ipi,
         "csll_financeiras": csll_fin,
         "csll_nao_financeiras": csll_nao,
         "tax_fastest": tax_fast,

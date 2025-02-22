@@ -135,38 +135,19 @@
             </div>
         </div>
     </div>
-    <div class="col-xxl-6">
+    <div class="col-xxl-6 col-xl-12">
         <div class="card h-100">
             <div class="card-body">
-                <div class="d-flex align-items-center flex-wrap gap-2 justify-content-between">
-                    <h6 class="mb-2 fw-bold text-lg mb-0">Generated Content</h6>
-                    <select class="form-select form-select-sm w-auto bg-base border text-secondary-light">
-                        <option>Today</option>
-                        <option>Weekly</option>
-                        <option>Monthly</option>
-                        <option>Yearly</option>
-                    </select>
-                </div>
-
-                <ul class="d-flex flex-wrap align-items-center mt-3 gap-3">
-                    <li class="d-flex align-items-center gap-2">
-                        <span class="w-12-px h-12-px rounded-circle bg-primary-600"></span>
-                        <span class="text-secondary-light text-sm fw-semibold">Word:
-                            <span class="text-primary-light fw-bold">500</span>
-                        </span>
-                    </li>
-                    <li class="d-flex align-items-center gap-2">
-                        <span class="w-12-px h-12-px rounded-circle bg-yellow"></span>
-                        <span class="text-secondary-light text-sm fw-semibold">Image:
-                            <span class="text-primary-light fw-bold">300</span>
-                        </span>
-                    </li>
-                </ul>
-
-                <div class="mt-40">
-                    <div id="paymentStatusChart" class="margin-16-minus"></div>
-                </div>
-
+                <h6 class="text-lg mb-0">IRPF, IRPJ e CSLL 2023 (Top 5 Estados)</h6>
+                <div id="stackedBarChart" class="pt-28"></div>
+            </div>
+        </div>
+    </div>
+    <div class="col-xxl-6 col-xl-12">
+        <div class="card h-100">
+            <div class="card-body">
+                <h6 class="text-lg mb-0">CSLL por Estado 2023<br><small>(Financeiras vs Não Financeiras)</small></h6>
+                <div id="csllHorizontalChart" class="pt-28"></div>
             </div>
         </div>
     </div>
@@ -176,6 +157,8 @@
     var visao_geral = {{ visao_geral | tojson  }};
     var state_cpmf = {{ state_cpmf | tojson  }};
     var heatmapData = {{ heatmap_data| tojson }};
+    var top5_irpf_irpj_csll = {{ top5_irpf_irpj_csll | tojson  }};
+    var csll_por_estado = {{ csll_por_estado | tojson  }};
 </script>
 {% endblock content %}
 
@@ -183,59 +166,6 @@
 <script src="static/js/brazil.js" type="text/javascript"></script>
 <script>
 
-    $(document).ready(function () {
-
-        // 1. Converte as chaves para minúsculo:
-        var newData = {};
-        Object.keys(heatmapData).forEach((uf) => {
-            newData[uf.toLowerCase()] = heatmapData[uf];
-        });
-
-        // 2. Inicializa o mapa com stroke-width menor e a escala progressiva:
-        $('#world-map').vectorMap({
-            map: 'brazil',
-            backgroundColor: 'transparent',
-            zoomButtons: true,
-            regionStyle: {
-                initial: {
-                    fill: '#FFFFFF',       // Base neutra branca
-                    'fill-opacity': 1,
-                    stroke: '#000',
-                    'stroke-width': 1,
-                    'stroke-opacity': 1
-                },
-                hover: {
-                    fill: '#CCCCCC'       // Cor ao passar o mouse
-                }
-            },
-            series: {
-                regions: [{
-                    values: newData,
-                    // Escala mais dramática: vai de claro até um tom mais escuro de vermelho
-                    scale: ['#FFFFFF', '#fc0303'],
-                    // Tente 'linear', 'polynomial' ou 'log' para ver qual distribui melhor
-                    normalizeFunction: 'polynomial'
-                }]
-            },
-            onRegionTipShow: function (e, el, code) {
-
-                let value = newData[code];
-                if (value !== undefined) {
-                    if (value >= 1_000_000_000_000) {
-                        value = (value / 1_000_000_000_000).toFixed(2) + ' Tri';
-                    } else if (value >= 1_000_000_000) {
-                        value = (value / 1_000_000_000).toFixed(2) + ' Bi';
-                    } else if (value >= 1_000_000) {
-                        value = (value / 1_000_000).toFixed(2) + 'Mi';
-                    } else if (value >= 1_000) {
-                        value = (value / 1_000).toFixed(2) + ' Mil';
-                    }
-                    el.html(el.html() + ' - R$ ' + value);
-                }
-
-            }
-        });
-    });
 </script>
 
 

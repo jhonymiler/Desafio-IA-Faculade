@@ -22,6 +22,10 @@ def index():
     # organize o heatmap por valor do maior para o menor
     heatmap_data = dict(sorted(heatmap_data.items(), key=lambda x: x[1], reverse=True))
 
+    query_top5_irpf_irpj_csll = du.query_top5_irpf_irpj_csll(df, ano_inicio, ano_fim)
+    query_csll_por_estado = du.query_csll_por_estado(df, ano_inicio, ano_fim)
+
+    ipi = du.query_ipi(df, ano_inicio, ano_fim)
 
     context = {
         "title": "Dashboard",
@@ -32,6 +36,9 @@ def index():
         "state_cpmf": state_cpmf,
         "heatmap_data": heatmap_data,
         "valor_total": valor_total,
+        "top5_irpf_irpj_csll": query_top5_irpf_irpj_csll,
+        "ipi": ipi,
+        "csll_por_estado": query_csll_por_estado
     }
     return render_template("index.html", **context)
 

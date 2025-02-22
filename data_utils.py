@@ -94,18 +94,80 @@ def query_impostos(df, ano_inicio, ano_fim):
         "IPI - VINCULADO À IMPORTACAO",
         "IPI - OUTROS"
     ]
+
     return [
         # total geral (soma de todas categorias)
         query_categoria(df, ano_inicio, ano_fim, cols_federal + cols_social + cols_prev + cols_impor_export, "Total Geral"),
         query_categoria(df, ano_inicio, ano_fim, cols_impor_export, "Importação/Exportação"),
         query_categoria(df, ano_inicio, ano_fim, cols_federal, "Imp. Federais"),
         query_categoria(df, ano_inicio, ano_fim, cols_social, "Contribuições Sociais"),
-        query_categoria(df, ano_inicio, ano_fim, cols_prev, "Previdência"),
+        query_categoria(df, ano_inicio, ano_fim, cols_prev, "Previdência")
     ]
 
 
+def query_ipi(df, ano_inicio, ano_fim):
+    
+    cols_ipi = [
+        "IPI - FUMO",
+        "IPI - BEBIDAS",
+        "IPI - AUTOMÓVEIS",
+        "IPI - VINCULADO À IMPORTACAO",
+        "IPI - OUTROS"
+    ]
+
+    return query_categoria(df, ano_inicio, ano_fim, cols_ipi, "IPI")
+
 def query_cpmf(df,ano_inicio, ano_fim):
     return query_categoria(df, ano_inicio, ano_fim, ["CPMF"], "CPMF")
+
+
+def query_top5_irpf_irpj_csll(df, ano_inicio, ano_fim):
+    # Filtra os dados pelo período definido
+    df_period = df[(df['Ano'] >= ano_inicio) & (df['Ano'] <= ano_fim)].copy()
+    
+    cols = ["IRPF", "IRPJ - ENTIDADES FINANCEIRAS", "IRPJ - DEMAIS EMPRESAS",
+            "CSLL", "CSLL - FINANCEIRAS", "CSLL - DEMAIS"]
+    
+    # Agrupa por UF e soma as colunas necessárias
+    grouped = df_period.groupby("UF")[cols].sum()
+    
+    # Calcula IRPJ e CSLL total
+    grouped["IRPJ"] = grouped["IRPJ - ENTIDADES FINANCEIRAS"] + grouped["IRPJ - DEMAIS EMPRESAS"]
+    grouped["CSLL_total"] = grouped["CSLL"] + grouped["CSLL - FINANCEIRAS"] + grouped["CSLL - DEMAIS"]
+    grouped["total"] = grouped["IRPF"] + grouped["IRPJ"] + grouped["CSLL_total"]
+    
+    # Seleciona os 5 estados com maior arrecadação
+    top5 = grouped.sort_values("total", ascending=False).head(5)
+    categorias = top5.index.tolist()
+    
+    # Organiza os dados para o gráfico em JS
+    series = [
+        {"name": "IRPF", "data": top5["IRPF"].tolist()},
+        {"name": "IRPJ", "data": top5["IRPJ"].tolist()},
+        {"name": "CSLL", "data": top5["CSLL_total"].tolist()}
+    ]
+    
+    return {"categorias": categorias, "series": series}
+
+def query_csll_por_estado(df, ano_inicio, ano_fim):
+    df_period = df[(df['Ano'] >= ano_inicio) & (df['Ano'] <= ano_fim)].copy()
+    cols = ["CSLL", "CSLL - FINANCEIRAS", "CSLL - DEMAIS"]
+    grouped = df_period.groupby("UF")[cols].sum()
+    grouped["total"] = grouped.sum(axis=1)
+
+    top5 = grouped.sort_values("total", ascending=False).head(5)
+    categorias = top5.index.tolist()  # Estados
+
+    series = [
+        {"name": "CSLL", "data": top5["CSLL"].tolist()},
+        {"name": "CSLL - FINANCEIRAS", "data": top5["CSLL - FINANCEIRAS"].tolist()},
+        {"name": "CSLL - DEMAIS", "data": top5["CSLL - DEMAIS"].tolist()},
+    ]
+
+    return {"categorias": categorias, "series": series}
+
+
+
 
 def query_irpf_sp(df):
     df_sp = df[df['UF'] == "SP"]
@@ -131,14 +193,6 @@ def query_irpj(df):
     fin = df_irpj.groupby("Ano")["IRPJ - ENTIDADES FINANCEIRAS"].sum().to_dict()
     dem = df_irpj.groupby("Ano")["IRPJ - DEMAIS EMPRESAS"].sum().to_dict()
     return fin, dem
-
-def query_ipi(df):
-    ipi_cols = ["IPI - FUMO", "IPI - BEBIDAS", "IPI - AUTOMÓVEIS", "IPI - VINCULADO À IMPORTACAO", "IPI - OUTROS"]
-    df_ipi = df[(df['Ano'] >= 2000) & (df['Ano'] <= 2024)].copy()
-    df_ipi["IPI_TOTAL"] = df_ipi[ipi_cols].sum(axis=1)
-    state = df_ipi.groupby("UF")["IPI_TOTAL"].sum().idxmax()
-    prod = df_ipi[df_ipi["UF"] == state][ipi_cols].sum().idxmax()
-    return state, prod
 
 def query_csll(df):
     df_csll = df[(df['Ano'] >= 2000) & (df['Ano'] <= 2023)]

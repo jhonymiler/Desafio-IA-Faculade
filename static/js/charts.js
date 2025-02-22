@@ -1,18 +1,20 @@
 function formater(value) {
+    if (typeof value !== 'number' || isNaN(value)) {
+        return '-'; // evita NaN
+    }
     const absValue = Math.abs(value);
     let formattedValue = absValue;
 
     if (absValue >= 1_000_000_000) {
-        formattedValue = (absValue / 1_000_000_000).toFixed(0) + 'B'; // Bilhões
+        formattedValue = (absValue / 1_000_000_000).toFixed(0) + 'B';
     } else if (absValue >= 1_000_000) {
-        formattedValue = (absValue / 1_000_000).toFixed(0) + 'M'; // Milhões
+        formattedValue = (absValue / 1_000_000).toFixed(0) + 'M';
     } else if (absValue >= 1_000) {
-        formattedValue = (absValue / 1_000).toFixed(0) + 'K'; // Milhares
+        formattedValue = (absValue / 1_000).toFixed(0) + 'K';
     }
 
-    return value < 0 ? `-${formattedValue}` : formattedValue; // Mantém o sinal negativo
+    return value < 0 ? `-${formattedValue}` : formattedValue;
 }
-
 
 var categoryChart = null
 function renderCategoryChart(categoryData) {
@@ -102,16 +104,7 @@ function renderStatePieChart(categoryData) {
         tooltip: {
             y: {
                 formatter: function (value) {
-                    const absValue = Math.abs(value);
-                    let formattedValue = absValue;
-                    if (absValue >= 1_000_000_000) {
-                        formattedValue = (absValue / 1_000_000_000).toFixed(1) + 'B';
-                    } else if (absValue >= 1_000_000) {
-                        formattedValue = (absValue / 1_000_000).toFixed(1) + 'M';
-                    } else if (absValue >= 1_000) {
-                        formattedValue = (absValue / 1_000).toFixed(1) + 'K';
-                    }
-                    return value < 0 ? `-${formattedValue}` : formattedValue;
+                    return formater(value);
                 }
             }
         }
@@ -151,11 +144,128 @@ function renderCPMFChart() {
     categoryChart = new ApexCharts(document.querySelector("#cpmfChart"), options).render();
 }
 
+// 2. Gráfico: Barras Empilhadas - IRPF, IRPJ e CSLL 2023 (Placeholder)
+function renderStackedBarChart() {
+    var options = {
+        chart: { type: 'bar', height: 350, stacked: true },
+        series: top5_irpf_irpj_csll.series,
+        xaxis: {
+            categories: top5_irpf_irpj_csll.categorias // nomes de estados, não formate aqui
+        },
+        yaxis: {
+            labels: {
+                formatter: formater // só no eixo Y
+            }
+        },
+        tooltip: {
+            y: {
+                formatter: formater // e no tooltip
+            }
+        }
+    };
+    new ApexCharts(document.querySelector("#stackedBarChart"), options).render();
+}
+
+function renderCSLLHorizontalChart() {
+    var options = {
+        chart: {
+            type: 'bar',
+            height: 350,
+            stacked: true // barras empilhadas
+        },
+        plotOptions: {
+            bar: {
+                horizontal: true, // barras na horizontal
+                barHeight: '50%'  // ajuste a espessura conforme desejar
+            }
+        },
+        dataLabels: {
+            enabled: false
+        },
+        series: csll_por_estado.series,
+        xaxis: {
+            // Mesmo sendo "xaxis", as categorias aparecerão no eixo Y,
+            // pois 'horizontal' inverte internamente
+            categories: csll_por_estado.categorias,
+            labels: {
+                formatter: formater // formata valores (1K, 10M, etc.)
+            }
+        },
+        tooltip: {
+            y: {
+                formatter: formater
+            }
+        }
+    };
+
+    new ApexCharts(document.querySelector("#csllHorizontalChart"), options).render();
+}
+
+
+
+
+
 
 // Renderiza o gráfico com a primeira categoria ao carregar a página
 document.addEventListener('DOMContentLoaded', function () {
     updateChart();
     renderCPMFChart()
+    renderStackedBarChart()
+    renderCSLLHorizontalChart()
+});
 
 
+
+$(document).ready(function () {
+
+    // 1. Converte as chaves para minúsculo:
+    var newData = {};
+    Object.keys(heatmapData).forEach((uf) => {
+        newData[uf.toLowerCase()] = heatmapData[uf];
+    });
+
+    // 2. Inicializa o mapa com stroke-width menor e a escala progressiva:
+    $('#world-map').vectorMap({
+        map: 'brazil',
+        backgroundColor: 'transparent',
+        zoomButtons: true,
+        regionStyle: {
+            initial: {
+                fill: '#FFFFFF',       // Base neutra branca
+                'fill-opacity': 1,
+                stroke: '#000',
+                'stroke-width': 1,
+                'stroke-opacity': 1
+            },
+            hover: {
+                fill: '#CCCCCC'       // Cor ao passar o mouse
+            }
+        },
+        series: {
+            regions: [{
+                values: newData,
+                // Escala mais dramática: vai de claro até um tom mais escuro de vermelho
+                scale: ['#FFFFFF', '#fc0303'],
+                // Tente 'linear', 'polynomial' ou 'log' para ver qual distribui melhor
+                normalizeFunction: 'polynomial'
+            }]
+        },
+        onRegionTipShow: function (e, el, code) {
+
+            let value = newData[code];
+            if (value !== undefined) {
+                if (value >= 1_000_000_000_000) {
+                    value = (value / 1_000_000_000_000).toFixed(2) + ' Tri';
+                } else if (value >= 1_000_000_000) {
+                    value = (value / 1_000_000_000).toFixed(2) + ' Bi';
+                } else if (value >= 1_000_000) {
+                    value = (value / 1_000_000).toFixed(2) + 'Mi';
+                } else if (value >= 1_000) {
+                    value = (value / 1_000).toFixed(2) + ' Mil';
+                }
+                el.html(el.html() + ' - R$ ' + value);
+            }
+
+        }
+    });
 });
