@@ -4,7 +4,5 @@ langchain-groq
 langchain-core
 pandas
 langchain_community
-langchain-huggingface
-qdrant-client
 protobuf==3.20.1
 
