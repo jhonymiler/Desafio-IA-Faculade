@@ -28,9 +28,6 @@ def format_number_extended(number):
     else:
         return format_number(number)
 
-###############################################################################
-# FUNÇÕES JÁ EXISTENTES
-###############################################################################
 
 def query_categoria(df, ano_inicio, ano_fim, cols, categoria):
     df_cat = df[(df['Ano'] >= ano_inicio) & (df['Ano'] <= ano_fim)].copy()
