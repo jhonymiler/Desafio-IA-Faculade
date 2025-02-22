@@ -11,23 +11,19 @@
     </div>
     <div class="sidebar-menu-area">
         <ul class="sidebar-menu" id="sidebar-menu">
-            <li class="dropdown">
-                <a href="javascript:void(0)">
+            <li>
+                <a href="{{ url_for('index') }}">
                     <iconify-icon icon="solar:pie-chart-outline" class="menu-icon"></iconify-icon>
                     <span>Dashboards</span>
                 </a>
-                <ul class="sidebar-submenu">
-                    <li>
-                        <a href="{{ url_for('index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Home</a>
-                    </li>
-                    <li>
-                        <a href="{{ url_for('dash_index') }}"><i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> CRM</a>
-                    </li>
-                    
-
-                </ul>
             </li>
-            
+            <li>
+                <a href="{{ url_for('chat_ia') }}">
+                    <iconify-icon icon="solar:chat-round-outline" class="menu-icon"></iconify-icon>
+                    <span>Chat IA</span>
+                </a>
+            </li>
+
         </ul>
     </div>
 </aside>

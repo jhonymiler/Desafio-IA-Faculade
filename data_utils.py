@@ -1,3 +1,4 @@
+# data_utils.py
 import pandas as pd
 
 def load_data(file_path='./dados/arrecadacao-estado.csv'):
@@ -7,20 +8,40 @@ def load_data(file_path='./dados/arrecadacao-estado.csv'):
     df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors='coerce')
     return df
 
+def format_number(number):
+    return f"{number:,.2f}".replace(".", "#").replace(",", ".").replace("#", ",")
+
+def format_number_extended(number):
+    abs_number = abs(number)
+    if abs_number >= 1e12:
+        value = number / 1e12
+        label = "trilhão" if value == 1 else "trilhões"
+        return f"{value:,.2f} {label}".replace(".", "#").replace(",", ".").replace("#", ",")
+    elif abs_number >= 1e9:
+        value = number / 1e9
+        label = "bilhão" if value == 1 else "bilhões"
+        return f"{value:,.2f} {label}".replace(".", "#").replace(",", ".").replace("#", ",")
+    elif abs_number >= 1e6:
+        value = number / 1e6
+        label = "milhão" if value == 1 else "milhões"
+        return f"{value:,.2f} {label}".replace(".", "#").replace(",", ".").replace("#", ",")
+    else:
+        return format_number(number)
+
+###############################################################################
+# FUNÇÕES JÁ EXISTENTES
+###############################################################################
 
 def query_categoria(df, ano_inicio, ano_fim, cols, categoria):
-    df_cat = df[(df['Ano'] >= ano_inicio) & (df['Ano'] <= ano_fim)]
+    df_cat = df[(df['Ano'] >= ano_inicio) & (df['Ano'] <= ano_fim)].copy()
     
-    # Remove duplicatas mantendo a ordem
     unique_cols = list(dict.fromkeys(cols))
-    
-    # Substitui valores negativos por zero
     df_cat[unique_cols] = df_cat[unique_cols].clip(lower=0)
 
     total = df_cat[unique_cols].sum().sum()
     estados = df_cat.groupby("UF")[unique_cols].sum().sum(axis=1)
     estado_max = estados.idxmax()
-    perc_estado_max = round(estados[estado_max] * 100 / total, 2)
+    perc_estado_max = round(estados[estado_max] * 100 / total, 2) if total > 0 else 0.0
     
     df_group = df_cat.groupby(['Ano', 'UF'])[unique_cols].sum()
     df_group = df_group.sum(axis=1).reset_index(name='valor')
@@ -34,8 +55,6 @@ def query_categoria(df, ano_inicio, ano_fim, cols, categoria):
         "anos": pivot.index.tolist(),
         "series": {uf: pivot[uf].tolist() for uf in pivot.columns}
     }
-
-
 
 def query_impostos(df, ano_inicio, ano_fim):
     cols_federal = [
@@ -96,7 +115,6 @@ def query_impostos(df, ano_inicio, ano_fim):
     ]
 
     return [
-        # total geral (soma de todas categorias)
         query_categoria(df, ano_inicio, ano_fim, cols_federal + cols_social + cols_prev + cols_impor_export, "Total Geral"),
         query_categoria(df, ano_inicio, ano_fim, cols_impor_export, "Importação/Exportação"),
         query_categoria(df, ano_inicio, ano_fim, cols_federal, "Imp. Federais"),
@@ -104,9 +122,7 @@ def query_impostos(df, ano_inicio, ano_fim):
         query_categoria(df, ano_inicio, ano_fim, cols_prev, "Previdência")
     ]
 
-
 def query_ipi(df, ano_inicio, ano_fim):
-    
     cols_ipi = [
         "IPI - FUMO",
         "IPI - BEBIDAS",
@@ -114,39 +130,30 @@ def query_ipi(df, ano_inicio, ano_fim):
         "IPI - VINCULADO À IMPORTACAO",
         "IPI - OUTROS"
     ]
-
     return query_categoria(df, ano_inicio, ano_fim, cols_ipi, "IPI")
 
-def query_cpmf(df,ano_inicio, ano_fim):
+def query_cpmf(df, ano_inicio, ano_fim):
     return query_categoria(df, ano_inicio, ano_fim, ["CPMF"], "CPMF")
 
-
 def query_top5_irpf_irpj_csll(df, ano_inicio, ano_fim):
-    # Filtra os dados pelo período definido
     df_period = df[(df['Ano'] >= ano_inicio) & (df['Ano'] <= ano_fim)].copy()
     
     cols = ["IRPF", "IRPJ - ENTIDADES FINANCEIRAS", "IRPJ - DEMAIS EMPRESAS",
             "CSLL", "CSLL - FINANCEIRAS", "CSLL - DEMAIS"]
     
-    # Agrupa por UF e soma as colunas necessárias
     grouped = df_period.groupby("UF")[cols].sum()
-    
-    # Calcula IRPJ e CSLL total
     grouped["IRPJ"] = grouped["IRPJ - ENTIDADES FINANCEIRAS"] + grouped["IRPJ - DEMAIS EMPRESAS"]
     grouped["CSLL_total"] = grouped["CSLL"] + grouped["CSLL - FINANCEIRAS"] + grouped["CSLL - DEMAIS"]
     grouped["total"] = grouped["IRPF"] + grouped["IRPJ"] + grouped["CSLL_total"]
     
-    # Seleciona os 5 estados com maior arrecadação
     top5 = grouped.sort_values("total", ascending=False).head(5)
     categorias = top5.index.tolist()
     
-    # Organiza os dados para o gráfico em JS
     series = [
         {"name": "IRPF", "data": top5["IRPF"].tolist()},
         {"name": "IRPJ", "data": top5["IRPJ"].tolist()},
         {"name": "CSLL", "data": top5["CSLL_total"].tolist()}
     ]
-    
     return {"categorias": categorias, "series": series}
 
 def query_csll_por_estado(df, ano_inicio, ano_fim):
@@ -156,18 +163,14 @@ def query_csll_por_estado(df, ano_inicio, ano_fim):
     grouped["total"] = grouped.sum(axis=1)
 
     top5 = grouped.sort_values("total", ascending=False).head(5)
-    categorias = top5.index.tolist()  # Estados
+    categorias = top5.index.tolist()
 
     series = [
         {"name": "CSLL", "data": top5["CSLL"].tolist()},
         {"name": "CSLL - FINANCEIRAS", "data": top5["CSLL - FINANCEIRAS"].tolist()},
         {"name": "CSLL - DEMAIS", "data": top5["CSLL - DEMAIS"].tolist()},
     ]
-
     return {"categorias": categorias, "series": series}
-
-
-
 
 def query_irpf_sp(df):
     df_sp = df[df['UF'] == "SP"]
@@ -210,22 +213,46 @@ def query_growth(df):
             growth[col] = (series.iloc[-1] - series.iloc[0]) / series.iloc[0]
     return max(growth, key=growth.get) if growth else None
 
-def format_number(number):
-    return f"{number:,.2f}".replace(".", "#").replace(",", ".").replace("#", ",")
+###############################################################################
+# NOVAS FUNÇÕES (exemplos)
+###############################################################################
 
-def format_number_extended(number):
-    abs_number = abs(number)
-    if abs_number >= 1e12:
-        value = number / 1e12
-        label = "trilhão" if value == 1 else "trilhões"
-        return f"{value:,.2f} {label}".replace(".", "#").replace(",", ".").replace("#", ",")
-    elif abs_number >= 1e9:
-        value = number / 1e9
-        label = "bilhão" if value == 1 else "bilhões"
-        return f"{value:,.2f} {label}".replace(".", "#").replace(",", ".").replace("#", ",")
-    elif abs_number >= 1e6:
-        value = number / 1e6
-        label = "milhão" if value == 1 else "milhões"
-        return f"{value:,.2f} {label}".replace(".", "#").replace(",", ".").replace("#", ",")
-    else:
-        return format_number(number)
+def query_total_por_mes(df, ano, uf=None):
+    """Soma de todas as colunas numéricas, mês a mês, opcionalmente filtrando UF."""
+    df_filt = df[df['Ano'] == ano].copy()
+    if uf:
+        df_filt = df_filt[df_filt['UF'] == uf]
+    numeric_cols = [c for c in df_filt.columns if c not in ['Ano','Mês','UF']]
+    df_filt[numeric_cols] = df_filt[numeric_cols].clip(lower=0)
+    df_filt['soma_mes'] = df_filt[numeric_cols].sum(axis=1)
+    resumo = df_filt.groupby('Mês')['soma_mes'].sum()
+    return resumo.to_dict()
+
+def query_ranking_estados_ano(df, ano, col):
+    """Ranking dos estados para uma coluna específica em um determinado ano."""
+    df_filt = df[df['Ano'] == ano].copy()
+    df_filt[col] = df_filt[col].clip(lower=0)
+    ranking = df_filt.groupby('UF')[col].sum().sort_values(ascending=False)
+    return ranking.to_dict()
+
+def query_percentual_uf_ano(df, ano, uf, col):
+    """Percentual de um estado em relação ao total do Brasil para uma dada coluna e ano."""
+    df_filt = df[df['Ano'] == ano].copy()
+    df_filt[col] = df_filt[col].clip(lower=0)
+    total_brasil = df_filt[col].sum()
+    total_uf = df_filt[df_filt['UF'] == uf][col].sum()
+    if total_brasil == 0:
+        return 0.0
+    return round(100 * total_uf / total_brasil, 2)
+
+def query_colunas_livres(df, ano_inicio, ano_fim, colunas):
+    """Soma de colunas específicas, no período, por UF."""
+    df_filt = df[(df['Ano'] >= ano_inicio) & (df['Ano'] <= ano_fim)].copy()
+    df_filt[colunas] = df_filt[colunas].clip(lower=0)
+    group_sum = df_filt.groupby('UF')[colunas].sum()
+    # Retorna total por UF e total geral
+    total_geral = group_sum.sum().sum()
+    return {
+        "por_uf": group_sum.to_dict('index'),
+        "total_geral": total_geral
+    }
