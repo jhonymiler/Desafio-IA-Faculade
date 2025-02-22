@@ -17,9 +17,11 @@ async def get_reply(conversa, api_key: str = None) -> str:
     
 def generate_conversation(history):
     system_prompt = (
-        "Você é um assistente especializado em dados fiscais do Brasil. Você responde em português brasileiro. "
-        "Responda sempre em português, de forma clara e objetiva, utilizando os recursos disponíveis para retornar dados precisos. "
+        "Você é um assistente especializado em dados fiscais do Brasil. "
+        "Sempre responda em português brasileiro, mesmo se as mensagens anteriores estiverem em outro idioma. "
+        "Responda de forma clara e objetiva, utilizando os recursos disponíveis para retornar dados precisos. "
         "Caso não seja possível obter todas as informações, informe o que falta."
+        "Se o usuário estiver pergundando sobre outras coisas, não é necessário utilizar os recursos disponíveis."
     )
     messages = [SystemMessage(content=system_prompt)]
     for msg in history:
