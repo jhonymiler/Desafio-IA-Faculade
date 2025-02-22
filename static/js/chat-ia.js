@@ -1,12 +1,12 @@
 // Função para manter o scroll no final
 function scrollToBottom() {
-    const chatList = document.getElementById("chatList");
-    chatList.scrollTop = chatList.scrollHeight;
+  const chatList = document.getElementById("chatList");
+  chatList.scrollTop = chatList.scrollHeight;
 }
 
 // Modelo de mensagem da IA
 function createIaMessage(reply) {
-    return `
+  return `
       <div class="d-flex align-items-start justify-content-between gap-16 border-bottom border-neutral-200 pb-16 mb-16">
         <div class="d-flex align-items-center gap-16">
           <div class="img overflow-hidden flex-shrink-0 sidebar-logo border-0">
@@ -25,7 +25,7 @@ function createIaMessage(reply) {
 
 // Modelo de mensagem do Usuário
 function createUserMessage(message) {
-    return `
+  return `
       <div class="d-flex align-items-start justify-content-between gap-16 border-bottom border-neutral-200 pb-16 mb-16">
         <div class="d-flex align-items-center gap-16">
           <div class="img overflow-hidden flex-shrink-0 sidebar-logo border-0">
@@ -41,30 +41,31 @@ function createUserMessage(message) {
 }
 
 document.getElementById("chatForm").addEventListener("submit", async function (e) {
-    e.preventDefault();
-    const input = document.getElementById("chatMessage");
-    const message = input.value.trim();
-    if (!message) return;
-    input.value = "";
+  e.preventDefault();
+  const input = document.getElementById("chatMessage");
+  const apikey = document.getElementById("apikey").value;
+  const message = input.value.trim();
+  if (!message) return;
+  input.value = "";
 
-    // Insere a mensagem do usuário no chat
-    const chatList = document.getElementById("chatList");
-    chatList.insertAdjacentHTML('beforeend', createUserMessage(message));
+  // Insere a mensagem do usuário no chat
+  const chatList = document.getElementById("chatList");
+  chatList.insertAdjacentHTML('beforeend', createUserMessage(message));
+  scrollToBottom();
+
+  // Envia a mensagem para o backend via AJAX
+  try {
+    const response = await fetch("/send_message", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ message, apikey }),
+    });
+    const data = await response.json();
+
+    // Insere a resposta da IA no chat
+    chatList.insertAdjacentHTML('beforeend', createIaMessage(data.reply));
     scrollToBottom();
-
-    // Envia a mensagem para o backend via AJAX
-    try {
-        const response = await fetch("/send_message", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ message })
-        });
-        const data = await response.json();
-
-        // Insere a resposta da IA no chat
-        chatList.insertAdjacentHTML('beforeend', createIaMessage(data.reply));
-        scrollToBottom();
-    } catch (error) {
-        console.error("Erro:", error);
-    }
+  } catch (error) {
+    console.error("Erro:", error);
+  }
 });

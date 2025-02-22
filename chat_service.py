@@ -1,30 +1,30 @@
-# chat_service.py
 import asyncio
-from langchain_core.messages import SystemMessage, HumanMessage
+from langchain_core.messages import SystemMessage, HumanMessage, AIMessage
 from agent_service import create_agent
 
-# Cria o agente (singleton)
-agent = create_agent()
-
-async def get_reply(conversa) -> str:
+async def get_reply(conversa, api_key: str = None) -> str:
     try:
-        # agent.run() é síncrono; se ocorrer erro, captura e retorna uma mensagem
-        return agent.run(conversa)
+        agent = create_agent(api_key)
+        result = agent.invoke(conversa)  # Executa a consulta com a lista de mensagens
+        if isinstance(result, dict) and "output" in result:
+            return result["output"]
+        elif hasattr(result, "content"):
+            return result.content
+        else:
+            return str(result)
     except Exception as e:
         return f"Erro ao processar a consulta: {e}"
-
-def generate_conversation(user_message: str, system_context: str):
-    return [
-        SystemMessage(content=system_context),
-        HumanMessage(content=user_message)
-    ]
-
-def build_system_prompt(user_message: str) -> str:
-    # Instruções do sistema para garantir respostas em português
-    return (
-        "Você é um assistente especializado em dados fiscais do Brasil. "
-        "Responda exclusivamente em português, de forma clara e objetiva, "
-        "utilizando os recursos disponíveis para retornar dados precisos. "
-        "Caso não seja possível obter todas as informações, informe o que falta. "
-        f"Usuário: {user_message}"
+    
+def generate_conversation(history):
+    system_prompt = (
+        "Você é um assistente especializado em dados fiscais do Brasil. Você responde em português brasileiro. "
+        "Responda sempre em português, de forma clara e objetiva, utilizando os recursos disponíveis para retornar dados precisos. "
+        "Caso não seja possível obter todas as informações, informe o que falta."
     )
+    messages = [SystemMessage(content=system_prompt)]
+    for msg in history:
+        if msg["role"] == "user":
+            messages.append(HumanMessage(content=msg["content"]))
+        else:
+            messages.append(AIMessage(content=msg["content"]))
+    return messages

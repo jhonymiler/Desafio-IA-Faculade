@@ -3,22 +3,32 @@
 {% block content %}
 <div class="row gy-4 flex-wrap-reverse">
     <div class="col-xxl-12 col-lg-12">
-        <div class="chat-main card overflow-hidden">
-            <div id="chatList" class="chat-message-list max-h-612-px min-h-612-px overflow-auto">
-                <!-- Mensagens iniciais podem ser carregadas aqui -->
+        <!-- Campo para inserção de api key como imput de senha -->
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">API Key</h5>
+                <p class="card-text">
+                    <input type="password" class="form-control" id="apikey" placeholder="API Key">
+                </p>
             </div>
-            <form id="chatForm" class="chat-message-box">
-                <input type="text" name="chatMessage" id="chatMessage" placeholder="Message wowdash...">
-                <button type="submit"
-                    class="w-44-px h-44-px d-flex justify-content-center align-items-center radius-8 bg-primary-600 text-white">
-                    <iconify-icon icon="f7:paperplane"></iconify-icon>
-                </button>
-            </form>
+        </div>
+        <div class="col-xxl-12 col-lg-12">
+            <div class="chat-main card overflow-hidden">
+                <div id="chatList" class="chat-message-list max-h-612-px min-h-612-px overflow-auto">
+                    <!-- Mensagens iniciais podem ser carregadas aqui -->
+                </div>
+                <form id="chatForm" class="chat-message-box">
+                    <input type="text" name="chatMessage" id="chatMessage" placeholder="Message wowdash...">
+                    <button type="submit"
+                        class="w-44-px h-44-px d-flex justify-content-center align-items-center radius-8 bg-primary-600 text-white">
+                        <iconify-icon icon="f7:paperplane"></iconify-icon>
+                    </button>
+                </form>
+            </div>
         </div>
     </div>
-</div>
-{% endblock content %}
+    {% endblock content %}
 
-{% block script %}
-<script src="static/js/chat-ia.js" type="text/javascript"></script>
-{% endblock script %}
+    {% block script %}
+    <script src="static/js/chat-ia.js" type="text/javascript"></script>
+    {% endblock script %}
