@@ -1,0 +1,393 @@
+{% extends './layout/layout.html' %}
+
+{% block content %}
+<div class="container">
+  <h1>{{ title }}</h1>
+  <h4>{{ subTitle }}</h4>
+
+
+  <!-- Dashboard Cards -->
+  <div class="row row-cols-xxxl-3 row-cols-lg-3 row-cols-sm-2 row-cols-1 gy-4">
+    <!-- Imposto sobre Importação -->
+    <div class="col">
+      <div class="card shadow-none border bg-gradient-start-1 h-100">
+        <div class="card-body p-20">
+          <p class="fw-medium text-primary-light mb-1">Imposto sobre Importação<br><small>(2000-2024)</small></p>
+          <h6 class="mb-0">Total: {{ total_import }}</h6>
+          <small>Estado: {{ state_import_max }}</small>
+        </div>
+      </div>
+    </div>
+    <!-- CPMF -->
+    <div class="col">
+      <div class="card shadow-none border bg-gradient-start-2 h-100">
+        <div class="card-body p-20">
+          <p class="fw-medium text-primary-light mb-1">CPMF<br><small>(1994-2007)</small></p>
+          <h6 class="mb-0">Estado: {{ state_cpmf }}</h6>
+        </div>
+      </div>
+    </div>
+    <!-- IRPF em SP -->
+    <div class="col">
+      <div class="card shadow-none border bg-gradient-start-3 h-100">
+        <div class="card-body p-20">
+          <p class="fw-medium text-primary-light mb-1">IRPF em SP</p>
+          <h6 class="mb-0">Máx. arrecadação em: {{ year_sp_irpf }}</h6>
+        </div>
+      </div>
+    </div>
+    <!-- COFINS 2023 -->
+    <div class="col">
+      <div class="card shadow-none border bg-gradient-start-4 h-100">
+        <div class="card-body p-20">
+          <p class="fw-medium text-primary-light mb-1">COFINS 2023</p>
+          <h6 class="mb-0">Total: {{ total_cofins }}</h6>
+          <small>Financeiras: {{ cofins_financeiras }} | Demais: {{ cofins_demais }}</small>
+        </div>
+      </div>
+    </div>
+    <!-- IPI -->
+    <div class="col">
+      <div class="card shadow-none border bg-gradient-start-5 h-100">
+        <div class="card-body p-20">
+          <p class="fw-medium text-primary-light mb-1">IPI (2000-2024)</p>
+          <h6 class="mb-0">Estado: {{ state_ipi }}</h6>
+          <small>Produto: {{ produto_ipi }}</small>
+        </div>
+      </div>
+    </div>
+    <!-- Desafio Pós-CPMF -->
+    <div class="col">
+      <div class="card shadow-none border bg-gradient-start-6 h-100">
+        <div class="card-body p-20">
+          <p class="fw-medium text-primary-light mb-1">Crescimento pós-CPMF</p>
+          <h6 class="mb-0">{{ tax_fastest }}</h6>
+          <small>(Imposto com maior crescimento após 2007)</small>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Fim dos Cards -->
+
+  <!-- Charts Section -->
+  <div class="row gy-4 mt-4">
+    <!-- 1. Evolução da CPMF por Estado (Gráfico de Linha) -->
+    <div class="col-xxl-6 col-xl-12">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="text-lg mb-0">Evolução da CPMF por Estado</h6>
+          <div id="cpmfChart" class="pt-28"></div>
+        </div>
+      </div>
+    </div>
+    <!-- 2. IRPF, IRPJ e CSLL 2023 (Barras Empilhadas - Top 5 Estados) -->
+    <div class="col-xxl-6 col-xl-12">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="text-lg mb-0">IRPF, IRPJ e CSLL 2023 (Top 5 Estados)</h6>
+          <div id="stackedBarChart" class="pt-28"></div>
+        </div>
+      </div>
+    </div>
+    <!-- 3. Exportação - MT & GO (Gráfico de Linhas Múltiplas) -->
+    <div class="col-xxl-6 col-xl-12">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="text-lg mb-0">Exportação (MT & GO 2000-2024)</h6>
+          <div id="exportChart" class="pt-28"></div>
+        </div>
+      </div>
+    </div>
+    <!-- 4. Impostos sobre Automóveis 2022 (Gráfico de Barras Simples) -->
+    <div class="col-xxl-6 col-xl-12">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="text-lg mb-0">Automóveis 2022</h6>
+          <div id="autoChart" class="pt-28"></div>
+        </div>
+      </div>
+    </div>
+    <!-- 5. IRPJ em SP (Gráfico de Linhas: Entidades Financeiras vs Demais) -->
+    <div class="col-xxl-6 col-xl-12">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="text-lg mb-0">IRPJ em SP (2000-2023)</h6>
+          <div id="irpjChart" class="pt-28"></div>
+        </div>
+      </div>
+    </div>
+    <!-- 6. Evolução da CSLL (Gráfico de Linhas: Financeiras vs Não Financeiras) -->
+    <div class="col-xxl-6 col-xl-12">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="text-lg mb-0">Evolução da CSLL (2000-2023)</h6>
+          <div id="csllChart" class="pt-28"></div>
+        </div>
+      </div>
+    </div>
+    <!-- 7. Contribuição de IPI no Estado com Maior Arrecadação (Barras Empilhadas) -->
+    <div class="col-xxl-6 col-xl-12">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="text-lg mb-0">Contribuição de IPI ({{ state_ipi }})</h6>
+          <div id="ipiChart" class="pt-28"></div>
+        </div>
+      </div>
+    </div>
+    <!-- 8. Mapa de Calor: Arrecadação Total por Estado 2023 -->
+    <div class="col-xxl-6 col-xl-12">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="text-lg mb-0">Mapa de Calor: Arrecadação 2023</h6>
+          <div id="heatmapChart" class="pt-28"></div>
+        </div>
+      </div>
+    </div>
+    <!-- 9. Gráfico de Pizza: Participação dos Impostos 2023 -->
+    <div class="col-xxl-6 col-xl-12">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="text-lg mb-0">Participação dos Impostos 2023</h6>
+          <div id="revenuePieChart" class="pt-28"></div>
+        </div>
+      </div>
+    </div>
+    <!-- 10. Dispersão: PIB vs Arrecadação 2023 -->
+    <div class="col-xxl-6 col-xl-12">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="text-lg mb-0">PIB x Arrecadação 2023</h6>
+          <div id="scatterChart" class="pt-28"></div>
+        </div>
+      </div>
+    </div>
+    <!-- 11. CSLL por Estado 2023 (Barras Horizontais) -->
+    <div class="col-xxl-6 col-xl-12">
+      <div class="card h-100">
+        <div class="card-body">
+          <h6 class="text-lg mb-0">CSLL por Estado 2023<br><small>(Financeiras vs Não Financeiras)</small></h6>
+          <div id="csllHorizontalChart" class="pt-28"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- Fim dos Charts -->
+
+  <!-- Injeção dos dados para o JavaScript -->
+  <script>
+    var exportData = {{ export_data| tojson }};
+    var autoByState = {{ auto_by_state| tojson }};
+    var irpjFinanceiras = {{ irpj_financeiras| tojson }};
+    var irpjDemais = {{ irpj_demais| tojson }};
+    var csllFinanceiras = {{ csll_financeiras| tojson }};
+    var csllNaoFinanceiras = {{ csll_nao_financeiras| tojson }};
+    var state_ipi = "{{ state_ipi }}";
+  </script>
+</div>
+{% endblock content %}
+
+{% block script %}
+<script>
+  // 1. Gráfico: Evolução da CPMF por Estado (Placeholder)
+  function renderCPMFChart() {
+    var options = {
+      chart: { type: 'line', height: 350 },
+      series: [
+        { name: 'Estado X', data: [10, 20, 15, 25, 30] }
+      ],
+      xaxis: { categories: [1994, 1995, 1996, 1997, 1998], title: { text: 'Ano' } },
+      yaxis: { title: { text: 'Arrecadação' } }
+    };
+    new ApexCharts(document.querySelector("#cpmfChart"), options).render();
+  }
+
+  // 2. Gráfico: Barras Empilhadas - IRPF, IRPJ e CSLL 2023 (Placeholder)
+  function renderStackedBarChart() {
+    var options = {
+      chart: { type: 'bar', height: 350, stacked: true },
+      series: [
+        { name: 'IRPF', data: [40, 50, 60, 70, 80] },
+        { name: 'IRPJ', data: [30, 40, 50, 60, 70] },
+        { name: 'CSLL', data: [20, 30, 40, 50, 60] }
+      ],
+      xaxis: { categories: ['Estado1', 'Estado2', 'Estado3', 'Estado4', 'Estado5'] },
+      yaxis: { title: { text: 'Arrecadação' } }
+    };
+    new ApexCharts(document.querySelector("#stackedBarChart"), options).render();
+  }
+
+  // 3. Gráfico: Exportação - MT & GO (Linha Múltipla)
+  function renderExportChart() {
+    let series = [];
+    for (let state in exportData) {
+      let data = [];
+      let anos = Object.keys(exportData[state]).sort();
+      anos.forEach(ano => {
+        data.push({ x: ano, y: exportData[state][ano] });
+      });
+      series.push({ name: state, data: data });
+    }
+    var options = {
+      chart: { type: 'line', height: 350 },
+      series: series,
+      xaxis: { type: 'category', title: { text: 'Ano' } },
+      yaxis: { title: { text: 'Arrecadação' } },
+      stroke: { curve: 'smooth' }
+    };
+    new ApexCharts(document.querySelector("#exportChart"), options).render();
+  }
+
+  // 4. Gráfico: Automóveis 2022 (Barras Simples)
+  function renderAutoChart() {
+    let categorias = Object.keys(autoByState);
+    let dados = categorias.map(estado => autoByState[estado]);
+    var options = {
+      chart: { type: 'bar', height: 350 },
+      series: [{ name: 'Automóveis', data: dados }],
+      xaxis: { categories: categorias, title: { text: 'Estado' } },
+      yaxis: { title: { text: 'Arrecadação' } }
+    };
+    new ApexCharts(document.querySelector("#autoChart"), options).render();
+  }
+
+  // 5. Gráfico: IRPJ em SP (Linha: Financeiras vs Demais)
+  function renderIRPJChart() {
+    let anos = Object.keys(irpjFinanceiras).sort();
+    let dadosFin = anos.map(ano => irpjFinanceiras[ano] || 0);
+    let dadosDem = anos.map(ano => irpjDemais[ano] || 0);
+    var options = {
+      chart: { type: 'line', height: 350 },
+      series: [
+        { name: 'Entidades Financeiras', data: dadosFin },
+        { name: 'Demais Empresas', data: dadosDem }
+      ],
+      xaxis: { categories: anos, title: { text: 'Ano' } },
+      yaxis: { title: { text: 'Arrecadação' } },
+      stroke: { curve: 'smooth' }
+    };
+    new ApexCharts(document.querySelector("#irpjChart"), options).render();
+  }
+
+  // 6. Gráfico: Evolução da CSLL (Linha: Financeiras vs Não Financeiras)
+  function renderCSLLChart() {
+    let anos = Object.keys(csllFinanceiras).sort();
+    let dadosFin = anos.map(ano => csllFinanceiras[ano] || 0);
+    let dadosNaoFin = anos.map(ano => csllNaoFinanceiras[ano] || 0);
+    var options = {
+      chart: { type: 'line', height: 350 },
+      series: [
+        { name: 'Entidades Financeiras', data: dadosFin },
+        { name: 'Não Financeiras', data: dadosNaoFin }
+      ],
+      xaxis: { categories: anos, title: { text: 'Ano' } },
+      yaxis: { title: { text: 'Arrecadação' } },
+      stroke: { curve: 'smooth' }
+    };
+    new ApexCharts(document.querySelector("#csllChart"), options).render();
+  }
+
+  // 7. Gráfico: IPI Breakdown (Barras Empilhadas)
+  function renderIPIChart() {
+    var options = {
+      chart: { type: 'bar', height: 350, stacked: true },
+      series: [
+        { name: 'Fumo', data: [30] },
+        { name: 'Bebidas', data: [20] },
+        { name: 'Automóveis', data: [50] },
+        { name: 'Importação', data: [40] }
+      ],
+      xaxis: { categories: [state_ipi] },
+      yaxis: { title: { text: 'Arrecadação' } }
+    };
+    new ApexCharts(document.querySelector("#ipiChart"), options).render();
+  }
+
+  // 8. Placeholder: Mapa de Calor – Arrecadação 2023
+  function renderHeatmapChart() {
+    var options = {
+      chart: { type: 'heatmap', height: 350 },
+      series: [{
+        name: '2023',
+        data: [
+          { x: 'SP', y: 90 },
+          { x: 'RJ', y: 80 },
+          { x: 'MG', y: 70 },
+          { x: 'RS', y: 60 },
+          { x: 'PR', y: 50 }
+        ]
+      }],
+      plotOptions: {
+        heatmap: {
+          shadeIntensity: 0.5,
+          colorScale: {
+            ranges: [
+              { from: 0, to: 50, name: 'Baixo', color: '#00A100' },
+              { from: 51, to: 100, name: 'Alto', color: '#FFB200' }
+            ]
+          }
+        }
+      }
+    };
+    new ApexCharts(document.querySelector("#heatmapChart"), options).render();
+  }
+
+  // 9. Placeholder: Gráfico de Pizza – Participação dos Impostos 2023
+  function renderRevenuePieChart() {
+    var options = {
+      chart: { type: 'pie', height: 350 },
+      series: [40, 30, 20, 10],
+      labels: ['IRPF', 'IRPJ', 'CSLL', 'COFINS']
+    };
+    new ApexCharts(document.querySelector("#revenuePieChart"), options).render();
+  }
+
+  // 10. Placeholder: Gráfico de Dispersão – PIB vs Arrecadação 2023
+  function renderScatterChart() {
+    var options = {
+      chart: { type: 'scatter', height: 350 },
+      series: [{
+        name: 'Estados',
+        data: [
+          { x: 100, y: 80 },
+          { x: 200, y: 150 },
+          { x: 300, y: 200 },
+          { x: 400, y: 250 },
+          { x: 500, y: 300 }
+        ]
+      }],
+      xaxis: { title: { text: 'PIB' } },
+      yaxis: { title: { text: 'Arrecadação' } }
+    };
+    new ApexCharts(document.querySelector("#scatterChart"), options).render();
+  }
+
+  // 11. Placeholder: Gráfico CSLL Horizontal – Arrecadação por Estado 2023
+  function renderCSLLHorizontalChart() {
+    var options = {
+      chart: { type: 'bar', height: 350 },
+      series: [
+        { name: 'Financeiras', data: [80, 70, 60, 50, 40] },
+        { name: 'Não Financeiras', data: [60, 50, 40, 30, 20] }
+      ],
+      xaxis: { categories: ['SP', 'RJ', 'MG', 'RS', 'PR'] },
+      yaxis: { title: { text: 'Arrecadação' } },
+      plotOptions: { bar: { horizontal: true } }
+    };
+    new ApexCharts(document.querySelector("#csllHorizontalChart"), options).render();
+  }
+
+  document.addEventListener("DOMContentLoaded", function () {
+    renderCPMFChart();
+    renderStackedBarChart();
+    renderExportChart();
+    renderAutoChart();
+    renderIRPJChart();
+    renderCSLLChart();
+    renderIPIChart();
+    renderHeatmapChart();
+    renderRevenuePieChart();
+    renderScatterChart();
+    renderCSLLHorizontalChart();
+  });
+</script>
+{% endblock script %}

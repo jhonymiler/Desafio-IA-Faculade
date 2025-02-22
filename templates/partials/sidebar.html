@@ -1,0 +1,33 @@
+<aside class="sidebar">
+    <button type="button" class="sidebar-close-btn">
+        <iconify-icon icon="radix-icons:cross-2"></iconify-icon>
+    </button>
+    <div>
+        <a href="{{ url_for('index') }}" class="sidebar-logo">
+            <img src="/static/images/logo.png" alt="site logo" class="light-logo">
+            <img src="/static/images/logo-light.png" alt="site logo" class="dark-logo">
+            <img src="/static/images/logo-icon.png" alt="site logo" class="logo-icon">
+        </a>
+    </div>
+    <div class="sidebar-menu-area">
+        <ul class="sidebar-menu" id="sidebar-menu">
+            <li class="dropdown">
+                <a href="javascript:void(0)">
+                    <iconify-icon icon="solar:pie-chart-outline" class="menu-icon"></iconify-icon>
+                    <span>Dashboards</span>
+                </a>
+                <ul class="sidebar-submenu">
+                    <li>
+                        <a href="{{ url_for('index') }}"><i class="ri-circle-fill circle-icon text-primary-600 w-auto"></i> Home</a>
+                    </li>
+                    <li>
+                        <a href="{{ url_for('dash_index') }}"><i class="ri-circle-fill circle-icon text-warning-main w-auto"></i> CRM</a>
+                    </li>
+                    
+
+                </ul>
+            </li>
+            
+        </ul>
+    </div>
+</aside>
