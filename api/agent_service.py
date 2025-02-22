@@ -15,7 +15,7 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # Carrega o DataFrame globalmente
-df = load_data("./api/dados/arrecadacao-estado.csv")
+df = load_data()
 
 def small_talk_tool_func(input_str: str) -> str:
     return "Olá! Estou aqui para ajudar com dados fiscais. Por favor, informe sua consulta com detalhes (por exemplo, anos, UF, colunas)."
