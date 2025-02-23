@@ -17,8 +17,8 @@ Esta aplicação Flask fornece uma interface de chat baseada em inteligência ar
 ## Instalação
 ### 1. Clonar o repositório
 ```bash
-$ git clone https://github.com/seu-repositorio/chat-ia.git
-$ cd chat-ia
+$ git clone https://github.com/jhonymiler/ia-dos-impostos.git
+$ cd ia-dos-impostos
 ```
 
 ### 2. Criar um ambiente virtual (opcional, mas recomendado)
@@ -37,8 +37,9 @@ $ pip install -r requirements.txt
 Crie um arquivo chamado `.env` na raiz do projeto e defina as variáveis de ambiente necessárias:
 ```env
 GROQ_API_KEY=sua_api_key_aqui
-SECRET_KEY=uma_chave_secreta
 ```
+
+Ou se preferir pode informar a chave na hora de falar com a IA
 
 ## Execução
 Para iniciar a aplicação, execute:
@@ -75,14 +76,6 @@ Envia uma mensagem para a IA e recebe uma resposta.
     "reply": "A arrecadação de IRPF em 2020 foi R$ XXX.XXX.XXX."
 }
 ```
-
-## Contribuição
-Se desejar contribuir com melhorias, siga os passos:
-1. **Fork** o repositório.
-2. Crie uma branch com a funcionalidade ou correção (`git checkout -b minha-branch`).
-3. Realize as alterações e faça commit (`git commit -m "Descrição das mudanças"`).
-4. Envie a branch (`git push origin minha-branch`).
-5. Crie um Pull Request no GitHub.
 
 ## Licença
 Este projeto está sob a licença MIT.
