@@ -14,4 +14,4 @@ os.environ["TF_CPP_MIN_LOG_LEVEL"] = "2"       # Reduz os avisos de nível INFO 
 os.environ["PROTOCOL_BUFFERS_PYTHON_IMPLEMENTATION"] = "python"  # Corrige erro de incompatibilidade
 
 if __name__ == '__main__':
-   app.run(debug=False, port=80)
+   app.run(debug=False, port=10000)
