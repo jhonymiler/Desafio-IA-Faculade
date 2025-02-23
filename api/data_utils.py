@@ -5,7 +5,7 @@ def load_data():
     file_id = "1L6LUC_RXsJo49OPc9tlr8riHNCVTwxBx"  # Substitua pelo ID correto do seu arquivo
     url = f"https://drive.google.com/uc?id={file_id}"  # Link direto para download
 
-    df = pd.read_csv(url, sep=';', error_bad_lines=False, encoding="utf-8")
+    df = pd.read_csv(url, sep=';', on_bad_lines="skip", encoding="utf-8")
     df['Ano'] = pd.to_numeric(df['Ano'], errors='coerce')
     numeric_cols = [col for col in df.columns if col not in ['Ano', 'Mês', 'UF']]
     df[numeric_cols] = df[numeric_cols].apply(pd.to_numeric, errors='coerce')
